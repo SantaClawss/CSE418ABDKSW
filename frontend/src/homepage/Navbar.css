@@ -1,0 +1,93 @@
+.navbar {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #c4c9d8;
+  border-top: 1px solid #6a5acd;
+  position: relative;
+}
+
+.navbar__btn {
+  padding: 4px 10px;
+  border: 1px solid #888;
+  background-color: #e8e8e8;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 2px;
+  font-family: Arial, sans-serif;
+}
+
+.navbar__btn:hover {
+  background-color: #d0d0d0;
+}
+
+
+/* Hamburger button — hidden on desktop */
+.navbar__hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 24px;
+  line-height: 1;
+  color: #333;
+}
+
+/* ── Mobile / Tablet ── */
+@media (max-width: 1024px) {
+  .navbar {
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    padding: 8px 16px;
+  }
+
+  .navbar__hamburger {
+    display: block;
+  }
+
+  .navbar__links {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #c4c9d8;
+    border-top: 1px solid #9a9faf;
+    z-index: 200;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .navbar__links--open {
+    display: flex;
+  }
+
+  .navbar__links .navbar__btn {
+    width: 100%;
+    text-align: left;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid #aab0c0;
+    padding: 12px 20px;
+    font-size: 15px;
+    background: #c4c9d8;
+  }
+
+  .navbar__links .navbar__btn:hover {
+    background-color: #b0b6c8;
+  }
+
+  .navbar__links .navbar__btn:last-child {
+    border-bottom: none;
+  }
+}
+
+/* ── Desktop ── */
+@media (min-width: 1025px) {
+  .navbar__links {
+    display: contents;
+  }
+}

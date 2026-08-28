@@ -1,0 +1,15 @@
+# JetBrains
+.idea/
+*.iml
+
+# Secrets (DO NOT COMMIT)
+backend/src/config.php
+
+# OS noise
+.DS_Store
+
+# Logs
+*.lognode_modules/
+package-lock.json
+
+node_modules/

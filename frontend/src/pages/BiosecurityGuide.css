@@ -1,0 +1,144 @@
+/* Base Styles */
+.biosecurity-guide-page {
+  min-height: 100vh;
+  background: #f8f9fa;
+  font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  color: #1a1a2e;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main container takes up all available space */
+.biosecurity-guide-main-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.biosecurity-guide-main {
+  max-width: 1050px;
+  margin: 0 auto;
+  padding: 2rem;
+  flex: 1;
+}
+
+/* Header */
+.biosecurity-guide-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 1.5rem;
+  text-align: center;
+}
+
+/* Toggle Button */
+.toggle-buttons {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.toggle-buttons button {
+  padding: 0.75rem 1.5rem;
+  margin: 0 0.5rem;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-buttons button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-buttons button.active {
+  background: #2e7d32;
+}
+
+/* Tip Cards */
+.tip-card {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 4px solid;
+}
+
+.tip-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tip-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+}
+
+.tip-card p {
+  font-size: 1rem;
+  color: #495057;
+  margin: 0;
+}
+
+/* Footer */
+.biosecurity-guide-footer {
+  margin-top: auto;
+  text-align: center;
+  padding: 2rem;
+  border-top: 1px solid #dee2e6;
+  width: 100%;
+}
+
+.biosecurity-guide-footer h3 {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: #1a1a2e;
+}
+
+.biosecurity-guide-footer ul {
+  list-style: none;
+  padding: 0;
+}
+
+.biosecurity-guide-footer li {
+  margin: 0.5rem 0;
+}
+
+.biosecurity-guide-footer a {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+.biosecurity-guide-footer a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .biosecurity-guide-main {
+    padding: 1rem;
+  }
+
+  .toggle-buttons button {
+    display: block;
+    width: 100%;
+    margin: 0.5rem 0;
+  }
+
+  .tip-card {
+    padding: 1.25rem;
+  }
+}

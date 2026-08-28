@@ -1,0 +1,319 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --ap-accent:        #5b4fcf;
+  --ap-accent-dark:   #4a3fbe;
+  --ap-success:       #2e7d32;
+  --ap-success-light: #e8f5e9;
+  --ap-danger:        #e53935;
+  --ap-danger-dark:   #c62828;
+  --ap-danger-light:  #fff0f0;
+  --ap-bg:            #f4f5f9;
+  --ap-surface:       #ffffff;
+  --ap-border:        #e4e6ef;
+  --ap-text-primary:  #1a1a2e;
+  --ap-text-secondary:#6b7080;
+  --ap-shadow-md:     0 4px 16px rgba(0,0,0,0.10);
+  --ap-radius:        14px;
+  --ap-radius-sm:     8px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* === PAGE === */
+.ap-page {
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--ap-bg);
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === LOADING === */
+.ap-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: var(--ap-text-secondary);
+}
+
+/* === ACCESS DENIED === */
+.ap-access-denied {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.ap-denied-box {
+  background: var(--ap-surface);
+  border-radius: var(--ap-radius);
+  box-shadow: var(--ap-shadow-md);
+  border: 1px solid var(--ap-border);
+  padding: 48px 40px;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+}
+
+.ap-denied-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.ap-denied-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ap-text-primary);
+  margin-bottom: 10px;
+}
+
+.ap-denied-desc {
+  font-size: 0.95rem;
+  color: var(--ap-text-secondary);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+.ap-home-btn {
+  background: var(--ap-accent);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 32px;
+  font-size: 0.95rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(91,79,207,0.25);
+}
+
+.ap-home-btn:hover {
+  background: var(--ap-accent-dark);
+  transform: translateY(-1px);
+}
+
+/* === NOTIFICATION TOAST === */
+.ap-notification {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ap-success);
+  color: #fff;
+  padding: 14px 32px;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  z-index: 9999;
+  white-space: nowrap;
+  animation: slideDown 0.25s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* === MAIN CONTENT === */
+.ap-content {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 32px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.ap-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--ap-text-primary);
+  letter-spacing: 0.01em;
+}
+
+/* === QUEUE CARD === */
+.ap-queue-card {
+  background: var(--ap-surface);
+  border-radius: var(--ap-radius);
+  box-shadow: var(--ap-shadow-md);
+  border: 1px solid var(--ap-border);
+  padding: 36px 40px;
+}
+
+.ap-queue-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--ap-text-secondary);
+  margin-bottom: 24px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--ap-border);
+}
+
+.ap-queue-empty {
+  font-size: 0.95rem;
+  color: var(--ap-text-secondary);
+  text-align: center;
+  padding: 40px 0;
+}
+
+/* === QUEUE LIST === */
+.ap-queue-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ap-queue-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--ap-bg);
+  border: 1px solid var(--ap-border);
+  border-radius: var(--ap-radius-sm);
+  padding: 16px 20px;
+  transition: box-shadow 0.18s;
+}
+
+.ap-queue-item:hover {
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+.ap-item-info {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.ap-item-disease {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ap-text-primary);
+  min-width: 160px;
+}
+
+.ap-item-state {
+  font-size: 0.9rem;
+  color: var(--ap-text-secondary);
+  background: var(--ap-surface);
+  border: 1px solid var(--ap-border);
+  border-radius: 50px;
+  padding: 3px 12px;
+  font-weight: 500;
+}
+
+.ap-item-date {
+  font-size: 0.85rem;
+  color: var(--ap-text-secondary);
+  font-weight: 400;
+}
+
+/* === ACTION BUTTONS === */
+.ap-item-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ap-approve-btn {
+  background: var(--ap-success);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 9px 24px;
+  font-size: 0.88rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.15s;
+  box-shadow: 0 2px 6px rgba(46,125,50,0.2);
+}
+
+.ap-approve-btn:hover {
+  background: #1b5e20;
+  transform: translateY(-1px);
+}
+
+.ap-reject-btn {
+  background: transparent;
+  color: var(--ap-danger);
+  border: 1.5px solid var(--ap-danger);
+  border-radius: 50px;
+  padding: 8px 24px;
+  font-size: 0.88rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.ap-reject-btn:hover {
+  background: var(--ap-danger-light);
+  border-color: var(--ap-danger-dark);
+  color: var(--ap-danger-dark);
+  transform: translateY(-1px);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .ap-content {
+    padding: 0 16px 40px;
+    margin: 24px auto;
+  }
+
+  .ap-queue-card {
+    padding: 24px 20px;
+  }
+
+  .ap-heading {
+    font-size: 1.5rem;
+  }
+
+  .ap-queue-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .ap-item-info {
+    gap: 10px;
+  }
+
+  .ap-item-disease {
+    min-width: unset;
+  }
+
+  .ap-item-actions {
+    width: 100%;
+  }
+
+  .ap-approve-btn,
+  .ap-reject-btn {
+    flex: 1;
+    text-align: center;
+  }
+
+  .ap-notification {
+    width: 90%;
+    white-space: normal;
+    text-align: center;
+  }
+}

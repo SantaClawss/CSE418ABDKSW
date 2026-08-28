@@ -1,0 +1,510 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Livestock Epidemic Tracker</title>
+
+  <style>
+    :root {
+      --primary:    #6155f5;
+      --primary-dk: #4a3ed9;
+      --light-bg:   #f0f4f8;
+      --card-bg:    #ffffff;
+      --border:     #ccd5df;
+      --text:       #1f2a44;
+      --gray:       #6b7280;
+      --blue:       #0066cc;
+      --red:        #d32f2f;
+      --purple:     #a040ff;
+      --yellow:     #ff9100;
+      --alert:      #00aaff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--light-bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    
+    .main-header {
+      background: #6155F5;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    .main-header h1 {
+      margin: 0;
+      font-size: 2.4rem;
+      letter-spacing: 1.5px;
+      font-weight: bold;
+    }
+
+    .nav-bar {
+      background: #d0d8e0;
+      padding: 0.75rem 1.5rem;
+      text-align: center;
+    }
+
+    .nav-bar button {
+      margin: 0 0.5rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      background: #e0e8f0;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .nav-bar button:hover {
+      background: #c0d0e0;
+    }
+
+    .filters {
+      background: #e8f0ff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .filters .reset {
+      background: var(--alert);
+      color: white;
+      border: none;
+      font-weight: 600;
+      padding: 0.5rem 1.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropbtn {
+      padding: 0.5rem 1rem;
+      min-width: 130px;
+      background: white;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: white;
+      min-width: 140px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-radius: 6px;
+      z-index: 10;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .dropdown-content a {
+      color: black;
+      padding: 0.65rem 1rem;
+      text-decoration: none;
+      display: block;
+      font-size: 0.95rem;
+    }
+
+    .dropdown-content a:hover {
+      background: #e8f0ff;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .state-input {
+      padding: 0.5rem 1rem;
+      border: 1px solid #aaa;
+      border-radius: 6px;
+      width: 160px;
+    }
+
+    .main-content {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .outbreak-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .map-box {
+      flex: 3;
+      min-width: 520px;
+      background: #e8f0ff;
+      border: 1px solid #ccd5df;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .map-placeholder {
+      height: 420px;
+      background: #d0e0ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      color: #555;
+      border: 2px dashed #888;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+
+    .view-buttons button {
+      margin-left: 0.5rem;
+      padding: 0.4rem 0.9rem;
+    }
+
+    .stats {
+      flex: 1;
+      min-width: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .stat-card {
+      padding: 1.25rem;
+      color: white;
+      font-weight: 700;
+      text-align: center;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .purple  { background: var(--purple); }
+    .blue    { background: var(--blue); }
+    .red     { background: var(--red); }
+    .yellow  { background: var(--yellow); color: #000; }
+
+    .recent-outbreaks {
+      background: var(--card-bg);
+      border: 1px solid #ccd5df;
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+
+    .recent-outbreaks h3 {
+      margin: 0 0 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 2px solid #888;
+    }
+
+    .outbreak-item {
+      margin: 0.9rem 0;
+      padding: 0.9rem;
+      background: #f9f9f9;
+      border-left: 5px solid var(--alert);
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .self-report {
+      background: var(--alert);
+      color: white;
+      border: none;
+      padding: 0.35rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .legend {
+      margin-top: 0.8rem;
+      font-size: 0.9rem;
+    }
+
+    .legend-btn {
+      padding: 0.4rem 0.9rem;
+      margin-right: 0.6rem;
+      border: 1px solid #888;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .legend-btn.active {
+      background: #003087;
+      color: white;
+      border-color: #003087;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #003087;
+      color: white;
+      font-size: 0.9rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="main-header">
+    <h1>Livestock Epidemic Tracker</h1>
+  </header>
+
+  <nav class="nav-bar">
+    <button id="homeBtn">Home</button>
+    <button id="newsBtn">News</button>
+    <button id="dataBtn">Data</button>
+    <button id="FAQBtn">FAQ</button>
+    <button id="profileBtn">Profile</button>
+    <button id="logoutBtn">Log out</button>
+  </nav>
+
+  <div class="filters">
+    <div class="dropdown" data-filter-type="diseases">
+      <button class="dropbtn" data-current="">Diseases ▾</button>
+      <div class="dropdown-content">
+        <a href="#" data-value="bird-flu">Bird Flu</a>
+        <a href="#" data-value="mad-cow">Mad Cow Disease</a>
+        <!-- Add more as needed -->
+      </div>
+    </div>
+
+    <div class="dropdown" data-filter-type="species">
+      <button class="dropbtn" data-current="">Species ▾</button>
+      <div class="dropdown-content">
+        <a href="#">Chicken</a>
+        <a href="#">Pig</a>
+        <a href="#">Cow</a>
+        <!-- Add more -->
+      </div>
+    </div>
+
+    <div class="dropdown" data-filter-type="timePeriod">
+      <button class="dropbtn" data-current="">Time Period ▾</button>
+      <div class="dropdown-content">
+        <a href="#" data-value="30d">Last 30 days</a>
+        <a href="#" data-value="60d">Last 60 days</a>
+        <a href="#" data-value="90d">Last 90 days</a>
+        <a href="#" data-value="180d">Last 180 days</a>
+        <a href="#" data-value="1y">Last year</a>
+        <a href="#" data-value="all">All time</a>
+      </div>
+    </div>
+
+    <div class="state-dropdown">
+      <input type="text" list="statesList" placeholder="State (e.g. NY)" class="state-input" />
+      <datalist id="statesList">
+        <option value="AL"><option value="AK"><option value="AZ"><option value="AR">
+        <option value="CA"><option value="CO"><option value="CT"><option value="DE">
+        <option value="FL"><option value="GA"><option value="HI"><option value="ID">
+        <option value="IL"><option value="IN"><option value="IA"><option value="KS">
+        <option value="KY"><option value="LA"><option value="ME"><option value="MD">
+        <option value="MA"><option value="MI"><option value="MN"><option value="MS">
+        <option value="MO"><option value="MT"><option value="NE"><option value="NV">
+        <option value="NH"><option value="NJ"><option value="NM"><option value="NY">
+        <option value="NC"><option value="ND"><option value="OH"><option value="OK">
+        <option value="OR"><option value="PA"><option value="RI"><option value="SC">
+        <option value="SD"><option value="TN"><option value="TX"><option value="UT">
+        <option value="VT"><option value="VA"><option value="WA"><option value="WV">
+        <option value="WI"><option value="WY">
+      </datalist>
+    </div>
+
+    <button class="reset" id="resetBtn">Reset</button>
+  </div>
+
+  <main class="main-content">
+    <section class="outbreak-section">
+      <div class="map-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3>Outbreak Locations</h3>
+          <div class="view-buttons">
+            <button>Map View</button>
+            <button>List View</button>
+            <button>Export</button>
+          </div>
+        </div>
+
+        <div class="map-placeholder">
+          [ United States map will appear here ]
+        </div>
+
+        <div class="legend">
+          <strong>LEGEND</strong><br><br>
+          <button class="legend-btn active" id="selfReportedBtn">Self Reported</button>
+          <button class="legend-btn active" id="confirmedBtn">Confirmed Case</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card purple">Total Outbreaks<br>9</div>
+        <div class="stat-card blue">Total Cases<br>123</div>
+        <div class="stat-card red">High Risk Areas<br>3</div>
+        <div class="stat-card yellow">Alerts<br>1</div>
+      </div>
+    </section>
+
+    <section class="recent-outbreaks">
+      <h3>Recent Outbreaks</h3>
+
+      <div class="outbreak-item">
+        <span><strong>Mad Cow Disease</strong>, 23,075 cases, 2007–2009</span>
+        <button class="self-report">Self Report</button>
+      </div>
+
+      <div class="outbreak-item">
+        <span><strong>H5N1 (Avian Flu)</strong>, 108,500,000 cases, 2023–2025</span>
+      </div>
+
+      <div class="outbreak-item">
+        <span><strong>Brucellosis</strong>, 35,871 cases, 1991–2025</span>
+      </div>
+
+      <div class="outbreak-item">
+        <span><strong>Swine Flu</strong>, 95,342,120 cases, 2006</span>
+      </div>
+
+      <p style="text-align:right; margin-top:1.2rem;">
+        <a href="#" style="color:var(--blue); text-decoration:none;">View All →</a>
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    © 2026 JNWSL Corp ™
+  </footer>
+
+  <script>
+    // ────────────────────────────────────────────────
+    // Navigation
+    // ────────────────────────────────────────────────
+      document.getElementById("profileBtn").addEventListener("click", () => {
+          alert("Change to profile page");
+      });
+
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+          alert("Change to sign in page");
+        // window.location.href = "login.html"; // replace with your actual login page URL
+      });
+
+      document.getElementById("FAQBtn").addEventListener("click", () => {
+          alert("Change to FAQ page");
+          //window.location.href = "faq.html"; // replace with your actual login page URL
+
+      });
+
+      document.getElementById("homeBtn").addEventListener("click", () => {
+          window.location.reload();
+      });
+
+      document.getElementById("newsBtn").addEventListener("click", () => {
+          alert("Change to newsBtn page");
+          //window.location.href = "news.html"; // replace with your actual login page URL
+
+      });
+
+      document.getElementById("dataBtn").addEventListener("click", () => {
+          alert("Change to data page");
+          //window.location.href = "data.html"; // replace with your actual login page URL
+
+      });
+
+    // ────────────────────────────────────────────────
+    // Reset
+    // ────────────────────────────────────────────────
+    document.getElementById("resetBtn")?.addEventListener("click", () => location.reload());
+
+    // ────────────────────────────────────────────────
+    // Self-report buttons
+    // ────────────────────────────────────────────────
+    document.querySelectorAll(".self-report").forEach(btn =>
+      btn.addEventListener("click", () => alert("Report submitted (demo mode)"))
+    );
+
+    // ────────────────────────────────────────────────
+    // Legend toggle
+    // ────────────────────────────────────────────────
+    document.getElementById("selfReportedBtn")?.addEventListener("click", e =>
+      e.currentTarget.classList.toggle("active")
+    );
+    document.getElementById("confirmedBtn")?.addEventListener("click", e =>
+      e.currentTarget.classList.toggle("active")
+    );
+
+    // ────────────────────────────────────────────────
+    // Filter dropdowns
+    // ────────────────────────────────────────────────
+    document.querySelectorAll(".dropdown").forEach(dropdown => {
+      const btn   = dropdown.querySelector(".dropbtn");
+      const links = dropdown.querySelectorAll(".dropdown-content a");
+
+      links.forEach(link => {
+        link.addEventListener("click", e => {
+          e.preventDefault();
+          const text  = link.textContent.trim();
+          const value = link.dataset.value || text;
+          btn.textContent = text + " ▾";
+          btn.dataset.current = value;
+
+          // Notify app that filters changed
+          document.dispatchEvent(new CustomEvent("filterChanged", {
+            detail: { type: dropdown.dataset.filterType, value }
+          }));
+        });
+      });
+    });
+
+    // Helper → current active filters
+    function getActiveFilters() {
+      const filters = {};
+
+      document.querySelectorAll('.dropdown[data-filter-type]').forEach(dropdown => {
+        const type = dropdown.dataset.filterType;
+        const value = dropdown.querySelector('.dropbtn')?.dataset.current;
+        if (value) filters[type] = value;
+      });
+
+      const state = document.querySelector('.state-input')?.value.trim();
+      if (state) filters.state = state;
+
+      return filters;
+    }
+
+    // Listen for filter changes (you can connect this to real map / list update)
+    document.addEventListener("filterChanged", e => {
+      const filters = getActiveFilters();
+      console.log("Active filters:", filters);
+      // → Call your map update function here
+      // updateMapAndStats(filters);
+    });
+
+    // Optional: initial log
+    console.log("Initial filters:", getActiveFilters());
+  </script>
+
+
+</body>
+</html>

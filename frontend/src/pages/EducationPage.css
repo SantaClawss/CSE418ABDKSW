@@ -1,0 +1,74 @@
+.education-page {
+  min-height: 100vh;
+  background: #f8f9fa;
+  font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  color: #1a1a2e;
+  display: flex;
+  flex-direction: column;
+}
+
+
+.education-page-main {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 2.5rem;
+  flex: 1;
+}
+
+.education-page-intro {
+  background: #ffffff;
+  border: 1px solid #e1e6ef;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.education-page-intro h2 {
+  margin: 0 0 0.75rem;
+  font-size: 2rem;
+  color: #1a1a2e;
+}
+
+.education-page-intro p {
+  margin: 0;
+  color: #495057;
+  line-height: 1.7;
+}
+
+.education-page-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.education-card {
+  background: #ffffff;
+  border: 1px solid #e1e6ef;
+  border-left: 4px solid #6a5acd;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.education-card h3 {
+  margin: 0 0 0.75rem;
+  color: #1a1a2e;
+  font-size: 1.25rem;
+}
+
+.education-card p {
+  margin: 0 0 0.85rem;
+  color: #495057;
+}
+
+.education-card p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .education-page-main {
+    padding: 1rem;
+  }
+}

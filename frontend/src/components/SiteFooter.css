@@ -1,0 +1,17 @@
+.site-footer {
+	margin: 0;
+	background: var(--header-gray); /* match header shading */
+}
+
+.site-footer__rule {
+	height: 4px;
+	background: var(--primary);
+	width: 100%;
+}
+
+.site-footer__text {
+	text-align: center;
+	font-size: 0.85rem;
+	color: #1f2a44;
+	padding: 12px 0 18px 0;
+}
