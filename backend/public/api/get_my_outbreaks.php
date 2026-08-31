@@ -41,7 +41,8 @@ try {
             cases,
             report_date,
             created_at,
-            status                            -- ← Added this
+            status,                            -- ← Added this
+            confidence_score
         FROM outbreaks
         WHERE User_ID = :userId
         ORDER BY created_at DESC

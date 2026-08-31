@@ -90,7 +90,7 @@ export default function LoginPage() {
 									className="field__input"
 									type="email"
 									value={email}
-									onChange={(e) => setEmail(e.target.value)}
+									onChange={(e) => setEmail(e.target.value.slice(0, 400))}
 									placeholder="Email"
 									autoComplete="email"
 									required
@@ -103,7 +103,7 @@ export default function LoginPage() {
 									className="field__input"
 									type="password"
 									value={password}
-									onChange={(e) => setPassword(e.target.value)}
+									onChange={(e) => setPassword(e.target.value.slice(0, 400))}
 									placeholder="Password"
 									autoComplete="current-password"
 									required

@@ -13,7 +13,7 @@ function detect_location(): void {
 
     // 1. Check if the user already has a manually saved location in the DB.
     //    If so, return it immediately with source = "user".
-    $stmt = $pdo->prepare("SELECT city, state FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT city, state, zip FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -25,6 +25,7 @@ function detect_location(): void {
             'country'    => 'US',
             'region'     => (string) $user['state'],
             'city'       => (string) $user['city'],
+            'zip'        => (string) ($user['zip'] ?? ''),
         ], 200);
         return;
     }
@@ -41,13 +42,14 @@ function detect_location(): void {
             'country'    => 'US',
             'region'     => 'Unknown',
             'city'       => 'Unknown',
+            'zip'        => 'Unknown',
         ], 200);
         return;
     }
 
-    // 3. Call ip-api.com for geolocation.
+    // 3. Call ip-api.com for geolocation (zip added to fields).
     $api_url  = "http://ip-api.com/json/" . urlencode($clean_ip)
-              . "?fields=status,country,regionName,city,query";
+              . "?fields=status,country,regionName,city,zip,query";
     $response = @file_get_contents($api_url);
 
     if (!$response) {
@@ -58,6 +60,7 @@ function detect_location(): void {
             'country'    => 'US',
             'region'     => 'Unknown',
             'city'       => 'Unknown',
+            'zip'        => 'Unknown',
         ], 200);
         return;
     }
@@ -72,6 +75,7 @@ function detect_location(): void {
             'country'    => 'US',
             'region'     => 'Unknown',
             'city'       => 'Unknown',
+            'zip'        => 'Unknown',
         ], 200);
         return;
     }
@@ -84,6 +88,7 @@ function detect_location(): void {
         'country'    => $data['country']    ?? 'Unknown',
         'region'     => $data['regionName'] ?? 'Unknown',
         'city'       => $data['city']       ?? 'Unknown',
+        'zip'        => $data['zip']        ?? 'Unknown',
     ], 200);
 }
 ?>

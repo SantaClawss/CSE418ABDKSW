@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
                                 className="fp-input"
                                 type="email"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => setEmail(e.target.value.slice(0, 400))}
                                 autoComplete="email"
                                 required
                             />

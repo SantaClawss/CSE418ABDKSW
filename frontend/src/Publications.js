@@ -13,6 +13,7 @@ const API_ROOT = IS_LOCAL
     : `${window.location.origin}/CSE442/2026-Spring/cse-442c/backend/public/api`;
 
 const API_BASE = `${API_ROOT}/index.php`;
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 const PUBLICATION_TYPE_OPTIONS = [
     '',
@@ -32,19 +33,17 @@ const defaultForm = {
     journal: '',
     publication_year: '',
     publication_date: '',
-    doi: '',
     origin_url: '',
     abstract_text: '',
     publication_type: '',
 };
 
 const FIELD_LIMITS = {
-    title: 300,
-    authors: 300,
+    title: 400,
+    authors: 200,
     journal: 200,
     publication_year: 4,
-    doi: 255,
-    origin_url: 1000,
+    origin_url: 200,
     abstract_text: 3000,
 };
 
@@ -52,12 +51,69 @@ function normalizeSpaces(value) {
     return value.replace(/\s+/g, ' ').trim();
 }
 
+function normalizeUrl(value) {
+    return value.replace(/\s+/g, '').trim();
+}
+
 function isRepeatedGarbage(value) {
     const compact = value.replace(/\s+/g, '');
     return compact.length >= 3 && /^([A-Za-z0-9])\1+$/.test(compact);
 }
 
-function validateForm(formData) {
+function validateUserUrl(url) {
+    if (!url) return '';
+
+    if (url.length > FIELD_LIMITS.origin_url) {
+        return `External link must be ${FIELD_LIMITS.origin_url} characters or fewer.`;
+    }
+
+    if (/[<>]/.test(url)) {
+        return 'External link contains invalid characters.';
+    }
+
+    if (/(javascript:|data:|vbscript:|file:|<script)/i.test(url)) {
+        return 'External link contains disallowed content.';
+    }
+
+    try {
+        const parsedUrl = new URL(url);
+
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+            return 'External link must start with http:// or https://';
+        }
+
+        if (!parsedUrl.hostname || parsedUrl.hostname.length < 2) {
+            return 'External link must include a valid domain.';
+        }
+    } catch {
+        return 'External link must be a valid URL.';
+    }
+
+    return '';
+}
+
+function validateUploadFile(file) {
+    if (!file) return '';
+
+    const lowerName = (file.name || '').toLowerCase();
+    const mimeType = (file.type || '').toLowerCase();
+
+    if (!lowerName.endsWith('.pdf')) {
+        return 'Uploaded file must be a PDF.';
+    }
+
+    if (mimeType && mimeType !== 'application/pdf' && mimeType !== 'application/x-pdf') {
+        return 'Uploaded file must be a PDF.';
+    }
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+        return 'Uploaded PDF must be 5 MB or smaller.';
+    }
+
+    return '';
+}
+
+function validateForm(formData, selectedFile) {
     const errors = {};
     const currentYear = new Date().getFullYear();
 
@@ -66,8 +122,7 @@ function validateForm(formData) {
     const journal = normalizeSpaces(formData.journal);
     const publicationYear = normalizeSpaces(formData.publication_year);
     const publicationDate = formData.publication_date.trim();
-    const doi = normalizeSpaces(formData.doi);
-    const originUrl = normalizeSpaces(formData.origin_url);
+    const originUrl = normalizeUrl(formData.origin_url);
     const abstractText = normalizeSpaces(formData.abstract_text);
     const publicationType = normalizeSpaces(formData.publication_type);
 
@@ -108,27 +163,20 @@ function validateForm(formData) {
         errors.publication_date = 'Publication date must be in YYYY-MM-DD format.';
     }
 
-    if (doi) {
-        if (doi.length > FIELD_LIMITS.doi) {
-            errors.doi = `DOI must be ${FIELD_LIMITS.doi} characters or fewer.`;
-        } else if (!/^10\.\d{4,9}\/[-._;()/:A-Z0-9]+$/i.test(doi)) {
-            errors.doi = 'DOI must be in a valid format.';
+    if (originUrl) {
+        const urlError = validateUserUrl(originUrl);
+        if (urlError) {
+            errors.origin_url = urlError;
         }
     }
 
-    if (originUrl) {
-        if (originUrl.length > FIELD_LIMITS.origin_url) {
-            errors.origin_url = `External link must be ${FIELD_LIMITS.origin_url} characters or fewer.`;
-        } else {
-            try {
-                const parsedUrl = new URL(originUrl);
-                if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-                    errors.origin_url = 'External link must start with http:// or https://';
-                }
-            } catch {
-                errors.origin_url = 'External link must be a valid URL.';
-            }
-        }
+    const fileError = validateUploadFile(selectedFile);
+    if (fileError) {
+        errors.uploaded_file = fileError;
+    }
+
+    if (!originUrl && !selectedFile) {
+        errors.uploaded_file = 'Provide either an external link or upload a PDF.';
     }
 
     if (abstractText.length > FIELD_LIMITS.abstract_text) {
@@ -158,8 +206,7 @@ function sanitizePayload(formData) {
         journal: normalizeSpaces(formData.journal),
         publication_year: normalizeSpaces(formData.publication_year),
         publication_date: formData.publication_date.trim(),
-        doi: normalizeSpaces(formData.doi),
-        origin_url: normalizeSpaces(formData.origin_url),
+        origin_url: normalizeUrl(formData.origin_url),
         abstract_text: normalizeSpaces(formData.abstract_text),
         publication_type: normalizeSpaces(formData.publication_type),
     };
@@ -193,6 +240,8 @@ function Publications() {
     const [submitMessage, setSubmitMessage] = useState('');
     const [formData, setFormData] = useState(defaultForm);
     const [formErrors, setFormErrors] = useState({});
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [fileInputKey, setFileInputKey] = useState(0);
 
     const statusLabel = useMemo(() => {
         if (apiStatus.status === 'up') return 'API Online';
@@ -253,7 +302,7 @@ function Publications() {
     useEffect(() => {
         const handleEscape = (event) => {
             if (event.key === 'Escape') {
-                setShowUpload(false);
+                closeUploadModal();
             }
         };
 
@@ -264,7 +313,15 @@ function Publications() {
         return () => {
             window.removeEventListener('keydown', handleEscape);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [showUpload]);
+
+    const resetUploadForm = () => {
+        setFormData(defaultForm);
+        setFormErrors({});
+        setSelectedFile(null);
+        setFileInputKey((prev) => prev + 1);
+    };
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
@@ -284,12 +341,13 @@ function Publications() {
 
     const closeUploadModal = () => {
         setShowUpload(false);
-        setFormErrors({});
+        setSubmitMessage('');
+        resetUploadForm();
     };
 
     const openUploadModal = () => {
         setSubmitMessage('');
-        setFormErrors({});
+        resetUploadForm();
         setShowUpload(true);
     };
 
@@ -305,7 +363,6 @@ function Publications() {
         if (name === 'title') nextValue = value.slice(0, FIELD_LIMITS.title);
         if (name === 'authors') nextValue = value.slice(0, FIELD_LIMITS.authors);
         if (name === 'journal') nextValue = value.slice(0, FIELD_LIMITS.journal);
-        if (name === 'doi') nextValue = value.slice(0, FIELD_LIMITS.doi);
         if (name === 'origin_url') nextValue = value.slice(0, FIELD_LIMITS.origin_url);
         if (name === 'abstract_text') nextValue = value.slice(0, FIELD_LIMITS.abstract_text);
 
@@ -317,12 +374,53 @@ function Publications() {
         setFormData(nextFormData);
 
         if (formErrors[name]) {
-            const nextErrors = validateForm(nextFormData);
+            const nextErrors = validateForm(nextFormData, selectedFile);
             setFormErrors((prev) => ({
                 ...prev,
                 [name]: nextErrors[name] || '',
             }));
         }
+
+        if (name === 'origin_url' && formErrors.uploaded_file) {
+            const nextErrors = validateForm(nextFormData, selectedFile);
+            setFormErrors((prev) => ({
+                ...prev,
+                uploaded_file: nextErrors.uploaded_file || '',
+            }));
+        }
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+
+        if (!file) {
+            setSelectedFile(null);
+            return;
+        }
+
+        const fileError = validateUploadFile(file);
+        if (fileError) {
+            setSelectedFile(null);
+            setFormErrors((prev) => ({
+                ...prev,
+                uploaded_file: fileError,
+            }));
+            e.target.value = '';
+            return;
+        }
+
+        setSelectedFile(file);
+
+        setFormErrors((prev) => ({
+            ...prev,
+            uploaded_file: '',
+        }));
+
+        const nextErrors = validateForm(formData, file);
+        setFormErrors((prev) => ({
+            ...prev,
+            uploaded_file: nextErrors.uploaded_file || '',
+        }));
     };
 
     const handleUploadSubmit = async (e) => {
@@ -331,7 +429,7 @@ function Publications() {
         setSubmitMessage('');
 
         const cleanedPayload = sanitizePayload(formData);
-        const validationErrors = validateForm(cleanedPayload);
+        const validationErrors = validateForm(cleanedPayload, selectedFile);
 
         if (Object.keys(validationErrors).length > 0) {
             setFormErrors(validationErrors);
@@ -343,13 +441,24 @@ function Publications() {
         setFormErrors({});
 
         try {
+            const body = new FormData();
+            body.append('title', cleanedPayload.title);
+            body.append('authors', cleanedPayload.authors);
+            body.append('journal', cleanedPayload.journal);
+            body.append('publication_year', cleanedPayload.publication_year);
+            body.append('publication_date', cleanedPayload.publication_date);
+            body.append('origin_url', cleanedPayload.origin_url);
+            body.append('abstract_text', cleanedPayload.abstract_text);
+            body.append('publication_type', cleanedPayload.publication_type);
+
+            if (selectedFile) {
+                body.append('uploaded_file', selectedFile);
+            }
+
             const res = await fetch(`${API_BASE}?r=publications-submit`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 credentials: 'include',
-                body: JSON.stringify(cleanedPayload),
+                body,
             });
 
             const data = await res.json();
@@ -359,8 +468,8 @@ function Publications() {
             }
 
             setSubmitMessage('Publication submitted for admin approval.');
-            setFormData(defaultForm);
             setShowUpload(false);
+            resetUploadForm();
 
             if (source === 'mine' || source === 'user' || source === 'all') {
                 fetchPublications();
@@ -374,8 +483,12 @@ function Publications() {
 
     const renderPublicationCard = (pub) => {
         const yearOrDate = pub.publication_date || pub.publication_year || 'Unknown date';
-        const originUrl = pub.origin_url || pub.doi || '';
-        const hasOrigin = typeof originUrl === 'string' && originUrl.trim() !== '';
+        const externalUrl = pub.origin_url || '';
+        const fileUrl = pub.bucket === 'user' && pub.uploaded_file_available
+            ? `${API_BASE}?r=publications-download&id=${encodeURIComponent(pub.id)}`
+            : '';
+        const primaryUrl = externalUrl || fileUrl;
+        const hasPrimaryUrl = typeof primaryUrl === 'string' && primaryUrl.trim() !== '';
 
         return (
             <article className="publications-card" key={`${pub.bucket}-${pub.id}`}>
@@ -397,9 +510,14 @@ function Publications() {
                         <p className="publications-card__meta">
                             <strong>Platform Source:</strong> {pub.display_source}
                         </p>
-                        {pub.doi && (
+                        {pub.bucket === 'api' && pub.doi && (
                             <p className="publications-card__meta">
                                 <strong>DOI:</strong> {pub.doi}
+                            </p>
+                        )}
+                        {pub.bucket === 'user' && pub.uploaded_original_filename && (
+                            <p className="publications-card__meta">
+                                <strong>Uploaded File:</strong> {pub.uploaded_original_filename}
                             </p>
                         )}
                     </div>
@@ -428,18 +546,18 @@ function Publications() {
                 )}
 
                 <div className="publications-card__actions">
-                    {hasOrigin ? (
+                    {hasPrimaryUrl ? (
                         <a
-                            href={originUrl}
+                            href={primaryUrl}
                             target="_blank"
                             rel="noreferrer"
                             className="publications-link-btn"
                         >
-                            View Original Publication
+                            {externalUrl ? 'View Original Publication' : 'View Uploaded PDF'}
                         </a>
                     ) : (
                         <span className="publications-link-btn publications-link-btn--disabled">
-                            No External Link
+                            No External Link or PDF
                         </span>
                     )}
                 </div>
@@ -540,7 +658,7 @@ function Publications() {
                                 <div>
                                     <h3>Upload a Publication</h3>
                                     <p className="publications-modal__subtext">
-                                        Submissions are saved as pending and must be approved by an admin before they appear in public publication results.
+                                        Provide an external link or upload a PDF. Uploaded PDFs are limited to 5 MB and are saved as pending until approved by an admin.
                                     </p>
                                 </div>
 
@@ -626,30 +744,37 @@ function Publications() {
                                 </label>
 
                                 <label>
-                                    DOI
-                                    <input
-                                        name="doi"
-                                        value={formData.doi}
-                                        onChange={handleFormChange}
-                                        maxLength={FIELD_LIMITS.doi}
-                                        placeholder="10.1000/xyz123"
-                                        className={formErrors.doi ? 'publications-field--error' : ''}
-                                    />
-                                    {formErrors.doi && <span className="publications-field-error">{formErrors.doi}</span>}
-                                </label>
-
-                                <label>
                                     External Link
                                     <input
                                         name="origin_url"
                                         type="url"
                                         value={formData.origin_url}
                                         onChange={handleFormChange}
-                                        placeholder="https://..."
+                                        placeholder="https://example.org/publication"
                                         maxLength={FIELD_LIMITS.origin_url}
                                         className={formErrors.origin_url ? 'publications-field--error' : ''}
                                     />
                                     {formErrors.origin_url && <span className="publications-field-error">{formErrors.origin_url}</span>}
+                                </label>
+
+                                <label>
+                                    Upload PDF
+                                    <input
+                                        key={fileInputKey}
+                                        type="file"
+                                        name="uploaded_file"
+                                        accept="application/pdf,.pdf"
+                                        onChange={handleFileChange}
+                                        className={formErrors.uploaded_file ? 'publications-field--error' : ''}
+                                    />
+                                    {selectedFile && (
+                                        <span className="publications-character-count">
+                                            Selected file: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                                        </span>
+                                    )}
+                                    {formErrors.uploaded_file && (
+                                        <span className="publications-field-error">{formErrors.uploaded_file}</span>
+                                    )}
                                 </label>
 
                                 <label>

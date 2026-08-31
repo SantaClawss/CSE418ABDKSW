@@ -11,14 +11,13 @@ export default function MyReports() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Grid layout: Date, Disease, Location, Status
-  const gridLayout = "1fr 1.5fr 1.5fr 1fr"; 
+  const gridLayout = "1fr 1.5fr 1.5fr 1fr 1.2fr";
 
   useEffect(() => {
     const fetchMyReports = async () => {
       try {
         const response = await fetch(
-          `${window.location.origin}/CSE442/2026-Spring/cse-442c/backend/public/api/get_all_outbreaks.php` ,
+          `${window.location.origin}/CSE442/2026-Spring/cse-442c/backend/public/api/get_my_outbreaks.php`,
           {
             method: "GET",
             credentials: "include",
@@ -27,10 +26,10 @@ export default function MyReports() {
         );
 
         let data;
-        try { 
-          data = await response.json(); 
-        } catch { 
-          throw new Error("Invalid server response"); 
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error("Invalid server response");
         }
 
         if (!response.ok || !data.ok) {
@@ -47,7 +46,6 @@ export default function MyReports() {
     fetchMyReports();
   }, []);
 
-  // Helper function to style status
   const getStatusStyle = (status) => {
     switch (status?.toLowerCase()) {
       case "rejected":
@@ -73,65 +71,61 @@ export default function MyReports() {
       <Navbar />
 
       <main style={{ flex: 1, display: "flex", justifyContent: "center", padding: "2rem 1rem" }}>
-        <div style={{ width: "100%", maxWidth: "1000px", display: "flex", flexDirection: "column" }}>
-          
+        <div style={{ width: "100%", maxWidth: "1100px", display: "flex", flexDirection: "column" }}>
+
           <button
             onClick={() => navigate("/self-report")}
-            style={{ 
-              alignSelf: "flex-start", 
-              marginBottom: "1.5rem", 
-              backgroundColor: "#3498db", 
-              color: "white", 
-              border: "none", 
-              padding: "0.6rem 1.2rem", 
-              borderRadius: "6px", 
-              fontWeight: "bold", 
-              cursor: "pointer" 
+            style={{
+              alignSelf: "flex-start",
+              marginBottom: "1.5rem",
+              backgroundColor: "#3498db",
+              color: "white",
+              border: "none",
+              padding: "0.6rem 1.2rem",
+              borderRadius: "6px",
+              fontWeight: "bold",
+              cursor: "pointer"
             }}
           >
             + Create Report
           </button>
 
-          <section style={{ 
-            background: "#ffffff", 
-            borderRadius: "12px", 
-            boxShadow: "0 4px 14px rgba(0,0,0,0.08)", 
-            padding: "2rem", 
-            minHeight: "60vh" 
+          <section style={{
+            background: "#ffffff",
+            borderRadius: "12px",
+            boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+            padding: "2rem",
+            minHeight: "60vh"
           }}>
-            
-            <div style={{ 
-              fontSize: "1.8rem", 
-              fontWeight: "bold", 
-              marginBottom: "2rem", 
-              color: "#333" 
-            }}>
+
+            <div style={{ fontSize: "1.8rem", fontWeight: "bold", marginBottom: "2rem", color: "#333" }}>
               My Submitted Reports
             </div>
 
             {/* Header */}
-            <div style={{ 
-              display: "grid", 
-              gridTemplateColumns: gridLayout, 
-              backgroundColor: "#d1d1d1", 
-              padding: "15px 20px", 
-              borderRadius: "12px", 
-              fontWeight: "bold", 
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: gridLayout,
+              backgroundColor: "#d1d1d1",
+              padding: "15px 20px",
+              borderRadius: "12px",
+              fontWeight: "bold",
               fontSize: "1.2rem",
               textAlign: "center",
-              marginBottom: "15px" 
+              marginBottom: "15px"
             }}>
               <div>Date</div>
               <div>Disease</div>
               <div>Location</div>
               <div>Status</div>
+              <div>Confidence</div>
             </div>
 
             {/* Report Rows */}
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {loading && <div style={{ textAlign: "center", padding: "40px" }}>Loading your reports...</div>}
               {error && <div style={{ color: "red", textAlign: "center", padding: "20px" }}>{error}</div>}
-              
+
               {!loading && !error && reports.length === 0 && (
                 <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
                   You haven't submitted any reports yet.
@@ -139,15 +133,15 @@ export default function MyReports() {
               )}
 
               {!loading && reports.map((report) => (
-                <div 
+                <div
                   key={report.id}
-                  style={{ 
-                    display: "grid", 
-                    gridTemplateColumns: gridLayout, 
-                    backgroundColor: "#f2f2f2", 
-                    padding: "15px 20px", 
-                    borderRadius: "15px", 
-                    alignItems: "center", 
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: gridLayout,
+                    backgroundColor: "#f2f2f2",
+                    padding: "15px 20px",
+                    borderRadius: "15px",
+                    alignItems: "center",
                     textAlign: "center",
                     border: "1px solid #e0e0e0",
                   }}
@@ -155,10 +149,13 @@ export default function MyReports() {
                   <div>{report.report_date || "N/A"}</div>
                   <div style={{ fontWeight: "500" }}>{report.diseaseType || "—"}</div>
                   <div>{report.location || "—"}</div>
-                  
-                  {/* Improved Status Display */}
                   <div style={getStatusStyle(report.status)}>
                     {getStatusDisplay(report.status)}
+                  </div>
+                  <div style={{ color: "#555", fontWeight: "500" }}>
+                    {report.confidence_score !== null && report.confidence_score !== undefined
+                      ? `${report.confidence_score}/100`
+                      : "Not yet available"}
                   </div>
                 </div>
               ))}
@@ -166,7 +163,7 @@ export default function MyReports() {
           </section>
         </div>
       </main>
-      
+
       <SiteFooter />
     </div>
   );

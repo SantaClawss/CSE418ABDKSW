@@ -1,7 +1,6 @@
 <?php
 // backend/public/api/detectlocation.php
 session_start();
-
 require_once '../../src/location.php';
 require_once '../../src/response.php';
 

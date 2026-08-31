@@ -42,7 +42,8 @@ try {
             report_date,
             created_at,
             status,
-            User_ID         AS reporter_id
+            User_ID         AS reporter_id, 
+            confidence_score
         FROM outbreaks
         WHERE status IS NOT NULL          -- Added filter
         ORDER BY created_at DESC

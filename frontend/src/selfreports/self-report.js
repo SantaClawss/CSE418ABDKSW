@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import logo from '../LivestockEpidemicTracker.jpeg';
 import SiteFooter from "../components/SiteFooter";
+import SiteHeader from "../components/SiteHeader";
 import Navbar from "../homepage/Navbar";
 import "../pages/LoginPage.css";
 import { Link } from "react-router-dom"; // ← Add this import (if using React Router)
@@ -62,7 +63,8 @@ export default function SelfReport() {
 
     try {
       const response = await fetch(
-        "https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442c/backend/public/api/create_outbreak.php",
+        `${window.location.origin}/CSE442/2026-Spring/cse-442c/backend/public/api/create_outbreak.php`,
+
         {
           method: "POST",
           credentials: "include",
@@ -88,7 +90,6 @@ export default function SelfReport() {
       }
 
       if (data.auto_rejected) {
-        alert("Too many rejected self reports. This report has been automatically rejected.");
         setError(data.message || "Too many rejected self reports. This report has been automatically rejected.");
       } else {
         setSuccess("Report submitted successfully!");
@@ -274,7 +275,6 @@ export default function SelfReport() {
       </main>
 
       <SiteFooter />
-    </div>
     </div>
   );
 }

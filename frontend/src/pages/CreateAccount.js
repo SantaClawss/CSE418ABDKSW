@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from '../LivestockEpidemicTracker.jpeg';
+import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import "./CreateAccount.css";
 
@@ -28,14 +28,18 @@ export default function CreateAccount({ onCancel }) {
 
     // Apply the same real-time sanitization as ViewProfile
     if (name === "firstName") {
-      sanitizedValue = value.replace(/[^A-Za-z]/g, "");
+      sanitizedValue = value.replace(/[^A-Za-z]/g, "").slice(0, 20);
     } else if (name === "lastName") {
-      sanitizedValue = value.replace(/[^A-Za-z-]/g, "");
+      sanitizedValue = value.replace(/[^A-Za-z-]/g, "").slice(0, 20);
+    } else if (name === "email") {
+      sanitizedValue = value.slice(0, 400);
+    } else if (name === "password" || name === "confirmPassword") {
+      sanitizedValue = value.slice(0, 400);
     }
 
     setFormData({ ...formData, [name]: sanitizedValue });
     setErrors({ ...errors, [name]: "" });
-  };
+};
 
   const validate = () => {
     const newErrors = {};
@@ -101,14 +105,7 @@ export default function CreateAccount({ onCancel }) {
 
   return (
     <div className="create-account-page">
-      <div style={{ background: '#ffffff', color: 'black', padding: '20px 0', fontFamily: 'Arial, Helvetica, sans-serif' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-          <img src={logo} alt="logo" style={{ width: 52, height: 52, objectFit: 'contain', borderRadius: 4 }} />
-          <h1 style={{ margin: 0, fontSize: '2.4rem', letterSpacing: '1.5px', fontWeight: 'bold' }}>
-            LIVESTOCK EPIDEMIC TRACKER
-          </h1>
-        </div>
-      </div>
+      <SiteHeader />
 
       <main className="ca-main">
         <section className="ca-card">
@@ -192,7 +189,7 @@ export default function CreateAccount({ onCancel }) {
             <button type="submit" className="ca-btn ca-btn--primary">
               Create Account
             </button>
-            <button type="button" className="ca-btn ca-btn--secondary" onClick={() => navigate("/login")}>
+            <button type="button" className="ca-btn ca-btn--secondary" onClick={() => navigate("/")}>
               Already have an account?
             </button>
           </form>
