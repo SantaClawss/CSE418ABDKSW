@@ -10,7 +10,7 @@ const IS_LOCAL =
 
 const API_ROOT = IS_LOCAL
     ? 'http://localhost/s26-jnswl-corp/backend/public/api'
-    : `${window.location.origin}/CSE442/2026-Spring/cse-442c/backend/public/api`;
+    : 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442c/backend/public/api';
 
 const API_BASE = `${API_ROOT}/index.php`;
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;

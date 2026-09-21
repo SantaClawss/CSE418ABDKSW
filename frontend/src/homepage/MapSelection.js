@@ -10,13 +10,13 @@ const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hos
 
 const API_ROOT = IS_LOCAL
   ? 'http://localhost:8000/api'
-  : 'https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442c/backend/public/api';
+  : 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442c/backend/public/api';
 
 const HOMEPAGE_API = `${API_ROOT}/homepage.php`;
 const MAP_POINTS_API = `${API_ROOT}/homepageMapPoints.php`;
 const WIND_API = IS_LOCAL
   ? 'http://localhost/s26-jnswl-corp/backend/public/api/index.php'
-  : 'https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442c/backend/public/api/index.php';
+  : 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442c/backend/public/api/index.php';
 
 // Fixed bounds covering the continental US for cartogram wind fetch
 const US_NORTH = 49.5;

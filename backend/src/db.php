@@ -4,7 +4,11 @@ declare(strict_types=1);
 function db(): PDO {
     static $pdo = null;
     if ($pdo) return $pdo;
-    $cfg = require __DIR__ . '/config.php';
+    // Support existing deployments and the configuration at the backend root.
+    $configPath = is_file(__DIR__ . '/config.php')
+        ? __DIR__ . '/config.php'
+        : __DIR__ . '/../config.php';
+    $cfg = require $configPath;
     $dsn = sprintf(
         "mysql:host=%s;dbname=%s;charset=utf8mb4",
         $cfg['db_host'],

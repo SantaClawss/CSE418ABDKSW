@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import logo from '../LivestockEpidemicTracker.jpeg';
-import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
+import SiteFooter from "../components/SiteFooter";
 import Navbar from "../homepage/Navbar";
 import "../pages/LoginPage.css";
 import { Link } from "react-router-dom"; // ← Add this import (if using React Router)

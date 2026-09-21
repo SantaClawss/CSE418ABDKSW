@@ -1,5 +1,5 @@
 <?php
-require_once 'config.php';
+require_once __DIR__ . '/db.php';
 
 class User {
     // Fetch full profile info for frontend safely

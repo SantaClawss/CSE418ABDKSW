@@ -7,7 +7,9 @@ require __DIR__ . '/../../src/auth.php';    // Provides login() and session_star
 require __DIR__ . '/../../src/profile.php'; // Added for ViewProfile
 
 //start session and handle CORS
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -67,14 +69,16 @@ try {
         }
         $pdo = db();
         $stmt = $pdo->prepare("
-            SELECT id, email, password, is_active, is_admin 
+            SELECT *
             FROM users 
             WHERE email = ? 
             LIMIT 1
         ");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
-        if (!$user || (int)$user['is_active'] !== 1) {
+        // Older users schemas omit status/role columns. Preserve explicit
+        // inactive flags, and never grant admin access when the role is absent.
+        if (!$user || (array_key_exists('is_active', $user) && (int)$user['is_active'] !== 1)) {
             http_response_code(401);
             echo json_encode(['ok' => false, 'error' => 'Invalid credentials'], JSON_UNESCAPED_SLASHES);
             exit;
@@ -84,14 +88,16 @@ try {
             echo json_encode(['ok' => false, 'error' => 'Invalid credentials'], JSON_UNESCAPED_SLASHES);
             exit;
         }
+        $isAdmin = (int)($user['is_admin'] ?? 0) === 1;
         // Set session
+        session_regenerate_id(true);
         $_SESSION['user_id'] = (int)$user['id'];
         // Return user info including admin status
-       $_SESSION['is_admin'] = (int)$user['is_admin'] === 1 ? 1 : 0;
+        $_SESSION['is_admin'] = $isAdmin ? 1 : 0;
         echo json_encode([
             'ok'       => true,
             'user_id'  => (int)$user['id'],
-            'is_admin' => (int)$user['is_admin'] === 1
+            'is_admin' => $isAdmin
         ], JSON_UNESCAPED_SLASHES);
         exit;
     }
@@ -421,6 +427,16 @@ try {
     echo json_encode(['error' => 'Unknown route'], JSON_UNESCAPED_SLASHES);
 }
 catch (Throwable $e) {
+    error_log('API error: ' . $e->getMessage());
+    if ($e->getPrevious()) {
+        error_log('API error cause: ' . $e->getPrevious()->getMessage());
+    }
+    $errorCode = 'INTERNAL_ERROR';
+    if ($e instanceof DatabaseSetupException) {
+        $errorCode = $e->getMessage();
+    } elseif ($e instanceof PDOException) {
+        $errorCode = 'DB_QUERY_FAILED';
+    }
     http_response_code(500);
     // TEMP: show the real error locally so we can debug
     $is_local = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true);
@@ -432,6 +448,6 @@ catch (Throwable $e) {
             'line'   => $e->getLine(),
         ], JSON_UNESCAPED_SLASHES);
     } else {
-        echo json_encode(['error' => 'Server error'], JSON_UNESCAPED_SLASHES);
+        echo json_encode(['error' => 'Server error', 'code' => $errorCode], JSON_UNESCAPED_SLASHES);
     }
 }

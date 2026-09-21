@@ -19,7 +19,7 @@ const IS_LOCAL = window.location.hostname === 'localhost'
 
 const API_ROOT = IS_LOCAL
   ? 'http://localhost/s26-jnswl-corp/backend/public/api'
-  : 'https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442c/backend/public/api';
+  : 'https://cattle.cse.buffalo.edu/CSE442/2026-Spring/cse-442c/backend/public/api';
 
 const API_BASE             = `${API_ROOT}/index.php`;
 const EXPORT_OUTBREAKS_URL = `${API_ROOT}/exportOutbreaks.php`;

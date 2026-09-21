@@ -5,7 +5,7 @@ const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hos
 
 const API_BASE = IS_LOCAL
   ? 'http://localhost:8000/api'
-  : 'https://aptitude.cse.buffalo.edu/CSE442/2026-Spring/cse-442c/backend/public/api';
+  : '/CSE442/2026-Spring/cse-442c/backend/public/api';
 
 const MORTALITY_COLOR = {
   High:     { bg: '#fee2e2', text: '#dc2626', border: '#fca5a5' },
