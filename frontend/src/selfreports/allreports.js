@@ -49,6 +49,7 @@ export default function AllReports() {
 
   //create a feature that deletes a report at a certain ID
   const deleteReport = async (reportID) => {
+	
 	const confirmed = window.confirm("Are you sure you want to delete this report?");
 	if (confirmed == false){return;}
 	
@@ -60,6 +61,7 @@ export default function AllReports() {
 			method: "DELETE",
 			credentials: "include",
 			headers: { "Accept": "application/json" },
+			//allows us to store id variable as string
 			body: JSON.stringify({id: reportID}),
 			}
 		);
@@ -92,7 +94,6 @@ export default function AllReports() {
 		}
 	}
 	
-  }
   
   const getStatusStyle = (status) => {
     switch (status?.toLowerCase()) {
