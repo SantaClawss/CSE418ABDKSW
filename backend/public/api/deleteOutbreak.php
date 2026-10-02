@@ -1,11 +1,11 @@
-<?php 
+<?php
 declare(strict_types=1);
 require __DIR__ . '/../../src/db.php';
 session_start();
 
 // CORS headers
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Methods: DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=utf-8");
@@ -27,7 +27,14 @@ if (!isset($_SESSION['user_id']) || !is_numeric($_SESSION['user_id'])) {
     exit;
 }
 
-// Read POST JSON
+// Admin status is set by the backend when the user logs in.
+if ((int)($_SESSION['is_admin'] ?? 0) !== 1) {
+    http_response_code(403);
+    echo json_encode(['ok' => false, 'error' => 'Only admins can delete reports']);
+    exit;
+}
+
+// Read DELETE JSON
 $input = json_decode(file_get_contents('php://input'), true);
 if (!isset($input['id']) || !is_numeric($input['id'])) {
     http_response_code(400);
@@ -50,7 +57,7 @@ try {
     if ($stmt->rowCount() === 0) {
         echo json_encode(['ok' => false, 'error' => 'Outbreak not found or already processed']);
     } else {
-        echo json_encode(['ok' => true, 'message' => 'Outbreak approved']);
+        echo json_encode(['ok' => true, 'message' => 'Outbreak deleted']);
     }
     
 } catch (Throwable $e) {

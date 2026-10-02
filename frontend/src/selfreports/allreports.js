@@ -11,7 +11,10 @@ export default function AllReports() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const gridLayout = "1fr 1.5fr 1.5fr 1fr 1.2fr 1fr";
+  const isAdmin = localStorage.getItem("is_admin") === "true";
+  const gridLayout = isAdmin
+    ? "1fr 1.5fr 1.5fr 1fr 1.2fr 1fr"
+    : "1fr 1.5fr 1.5fr 1fr 1.2fr";
 
   useEffect(() => {
     const fetchAllReports = async () => {
@@ -49,6 +52,7 @@ export default function AllReports() {
 
   //create a feature that deletes a report at a certain ID
   const deleteReport = async (reportID) => {
+	if (!isAdmin) return;
 	
 	const confirmed = window.confirm("Are you sure you want to delete this report?");
 	if (confirmed == false){return;}
@@ -168,6 +172,7 @@ export default function AllReports() {
               <div>Location</div>
               <div>Status</div>
               <div>Confidence</div>
+              {isAdmin && <div>Actions</div>}
             </div>
 
             {/* Report Rows */}
@@ -207,9 +212,7 @@ export default function AllReports() {
                       : "Not yet available"}
                   </div>
 				  
-				  {/* delete button should appear after report in app */}
-				  {/* goona have to keep messing around with dimensions to get them right*/}
-				  <div>
+				  {isAdmin && <div>
 				   <button
 				   	onClick={() => deleteReport(report.id)}
 					style={{
@@ -224,7 +227,7 @@ export default function AllReports() {
 					>
 					Delete
 					</button>
-					</div>
+					</div>}
                 </div>
               ))}
             </div>
