@@ -1,96 +1,61 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from './homepage/Navbar';
 import SiteHeader from './components/SiteHeader';
 import SiteFooter from './components/SiteFooter';
 
-const mockNews = [
-  {
-  id: 1,
-  title: "USDA To Host Free Biosecurity Webinars for Dairy and Poultry Producers",
-  source: "USDA APHIS",
-  sourceUrl: "https://www.aphis.usda.gov/news/program-update/usda-host-free-biosecurity-webinars-dairy-poultry-producers",
-  date: "Jan 02 2026",
-  description: "State The USDA APHIS is offering free biosecurity webinars for dairy and poultry producers to help prevent the spread of disease on farms. Sessions will cover best practices for farm biosecurity, early detection, and response protocols. health officials have confirmed additional detections of Highly Pathogenic Avian Influenza (H5N1) in commercial poultry operations across western New York. Bio-security protocols have been reinforced, and movement controls are in effect in affected counties. Producers are urged to review mitigation guidance and report unusual mortality immediately.",
-  disease: "H5N1",
-  location: "Washington, D.C.",
-  image: "https://images.unsplash.com/photo-1593179357196-ea11a2e7c119?w=600&q=80",},
-  {
-  id: 2,
-  title: "Update: Genetic Sequencing Results for Wisconsin Dairy Herd Detection of HPAI",
-  source: "USDA APHIS",
-  sourceUrl: "https://www.aphis.usda.gov/news/agency-announcements/update-genetic-sequencing-results-wisconsin-dairy-herd-detection-highly",
-  date: "Dec 19, 2025",
-  description: "USDA confirmed H5N1 clade 2.3.4.4b genotype D1.1 in a Wisconsin dairy herd — a new spillover event from wildlife, separate from previous outbreaks. Pasteurization continues to protect the commercial milk supply, and public health risk remains low.",
-  disease: "H5N1 (Avian Flu)",
-  location: "Wisconsin",
-  image: "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=600&q=80",},
-  {
-  id: 3,
-  title: "USDA Confirms Highly Pathogenic Avian Influenza in a Dairy Herd in Wisconsin",
-  source: "USDA APHIS",
-  sourceUrl: "https://www.aphis.usda.gov/news/agency-announcements/usda-confirms-highly-pathogenic-avian-influenza-dairy-herd-wisconsin",
-  date: "Dec 14, 2025",
-  description: "USDA APHIS confirmed HPAI H5 in a Wisconsin dairy herd — the first known case in the state. Detected through routine milk testing, not pre-movement surveillance. Commercial milk supply remains safe, and public health risk is considered low.",
-  disease: "H5N1 (Avian Flu)",
-  location: "Wisconsin",
-  image: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=600&q=80",},
-  {
-  id: 4,
-  title: "USDA Confirms 7th Case of Atypical BSE in South Carolina Beef Cow",
-  source: "USDA APHIS",
-  sourceUrl: "https://www.aphis.usda.gov/news/agency-announcements/usda-announces-atypical-bovine-spongiform-encephalopathy-detection",
-  date: "May 19, 2023",
-  description: "USDA confirmed atypical L-type BSE in a 5-year-old beef cow at a South Carolina slaughter plant. The animal never entered the food supply and posed no risk to human health. The U.S. maintains negligible risk status for BSE.",
-  disease: "Mad Cow Disease (BSE)",
-  location: "South Carolina",
-  image: "https://images.unsplash.com/photo-1465379944081-7f47de8d74ac?w=600&q=80",},
-  {
-  id: 5,
-  title: "New Biosecurity Guidelines Released for Poultry Operations",
-  source: "WOAH",
-  sourceUrl: "https://wahis.woah.org/#/event-management",
-  date: "Jan 18, 2026",
-  description:"Updated biosecurity protocols have been released for commercial and backyard poultry operations. The guidelines emphasize enhanced cleaning procedures, visitor restrictions, and wildlife deterrent measures to reduce the risk of disease introduction.",
-  disease: "Avian Influenza",
-  location: "Nationwide",
-  image: "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?w=600&q=80",},
-  {
-  id: 6,
-  title: "First Detection of H5N1 in U.S. Swine Reported in Oregon",
-  source: "AVMA",
-  sourceUrl: "https://www.avma.org/resources-tools/animal-health-and-welfare/animal-health/avian-influenza/avian-influenza-virus-type-h5n1-us-dairy-cattle",
-  date: "Nov 2024",
-  description: "H5N1 was confirmed in two pigs on an Oregon backyard farm where poultry and livestock were comingled — the first detection of the virus in U.S. swine. USDA confirmed no concern about the safety of the nation's pork supply.",
-  disease: "Swine Flu",
-  location: "Oregon",
-  image: "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=600&q=80",}
-];
-const diseaseOptions = ["All Diseases", "H5N1 (Avian Flu)", "Swine Flu", "Mad Cow Disease (BSE)", "Bluetongue", "Other",];
+const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const NEWS_API = IS_LOCAL
+  ? 'http://localhost:8000/api/news.php'
+  : '/CSE442/2026-Spring/cse-442c/backend/public/api/news.php';
+
 const sortOptions = ["Newest First", "Oldest First", "Source A-Z"];
 const ITEMS_PER_PAGE = 3;
 
 export default function News() {
-  const [selectedDisease, setSelectedDisease] = useState("All Diseases");
-  const [locationQuery, setLocationQuery] = useState("");
   const [sortBy, setSortBy] = useState("Newest First");
   const [currentPage, setCurrentPage] = useState(1);
-  const [diseaseOpen, setDiseaseOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
 
-  const filtered = mockNews
-    .filter((n) => selectedDisease === "All Diseases" || n.disease === selectedDisease)
-    .filter((n) =>
-      locationQuery === "" ||
-      n.location.toLowerCase().includes(locationQuery.toLowerCase())
-    )
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError('');
+    setArticles([]);
+    setCurrentPage(1);
+    const loadNews = async () => {
+      try {
+        const response = await fetch(NEWS_API, { signal: controller.signal });
+        const data = await response.json();
+        if (!response.ok || !data.ok || !Array.isArray(data.articles)) {
+          throw new Error('News is temporarily unavailable. Please try again.');
+        }
+        if (!controller.signal.aborted) setArticles(data.articles);
+      } catch (err) {
+        if (!controller.signal.aborted) setError('News is temporarily unavailable. Please try again.');
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+    loadNews();
+    return () => {
+      controller.abort();
+    };
+  }, [retry]);
+
+  const sortedArticles = [...articles]
     .sort((a, b) => {
       if (sortBy === "Newest First") return new Date(b.date) - new Date(a.date);
       if (sortBy === "Oldest First") return new Date(a.date) - new Date(b.date);
       return a.source.localeCompare(b.source);
     });
 
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice(
+  const totalPages = Math.max(1, Math.ceil(sortedArticles.length / ITEMS_PER_PAGE));
+  const paginated = sortedArticles.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -112,8 +77,6 @@ export default function News() {
         .dropdown-menu.right { right: 0; left: auto; }
         .dropdown-item { padding: 8px 14px; cursor: pointer; font-size: 14px; }
         .dropdown-item:hover { background: #f0f0f0; }
-        .search-wrapper { display: flex; align-items: center; border: 1px solid #aaa; background: #fff; padding: 4px 10px; border-radius: 2px; gap: 6px; flex: 1; max-width: 260px; }
-        .search-wrapper input { border: none; outline: none; font-size: 14px; width: 100%; background: transparent; }
         .sort-wrapper { margin-left: auto; }
         .news-list { display: flex; flex-direction: column; gap: 12px; }
         .news-card { background: #fff; border: 1px solid #ccc; overflow: hidden; display: flex; }
@@ -126,9 +89,6 @@ export default function News() {
         .card-meta { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
         .meta-tag { font-size: 12px; border: 1px solid #aaa; padding: 2px 8px; background: #f5f5f5; white-space: nowrap; }
         .card-desc { font-size: 14px; line-height: 1.6; color: #333; }
-        .card-links { display: flex; gap: 12px; padding-top: 8px; border-top: 1px solid #eee; flex-wrap: wrap; }
-        .card-link { font-size: 12px; color: #1a1a8a; text-decoration: none; font-family: sans-serif; }
-        .card-link:hover { text-decoration: underline; }
         .pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 24px; }
         .page-btn { padding: 4px 14px; border: 1px solid #aaa; background: #e8e8e8; cursor: pointer; font-size: 13px; border-radius: 2px; }
         .page-btn:disabled { opacity: 0.4; cursor: default; }
@@ -144,7 +104,6 @@ export default function News() {
           .news-card-body { padding: 14px 16px; }
           .card-top { flex-direction: column; gap: 8px; }
           .sort-wrapper { margin-left: 0; }
-          .search-wrapper { max-width: 100%; }
         }
       `}</style>
 
@@ -157,36 +116,12 @@ export default function News() {
 
         {/* Content */}
         <div className="news-content">
-          {/* Filter Bar */}
+          <h1>Agricultural News</h1>
+          <p style={{ margin: "12px 0 20px" }}>Latest agricultural headlines via GNews.</p>
+          {/* Sort articles */}
           <div className="filter-bar">
-            <div className="dropdown-wrapper">
-              <button className="filter-btn" onClick={() => { setDiseaseOpen(!diseaseOpen); setSortOpen(false); }}>
-                Disease Filter <span style={{ fontSize: 10 }}>▲</span>
-              </button>
-              {diseaseOpen && (
-                <div className="dropdown-menu">
-                  {diseaseOptions.map((d) => (
-                    <div key={d} className="dropdown-item"
-                      style={{ fontWeight: selectedDisease === d ? "bold" : "normal" }}
-                      onClick={() => { setSelectedDisease(d); setDiseaseOpen(false); setCurrentPage(1); }}>
-                      {d}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="search-wrapper">
-              <span>🔍</span>
-              <input
-                placeholder="City, State, ZIP"
-                value={locationQuery}
-                onChange={(e) => { setLocationQuery(e.target.value); setCurrentPage(1); }}
-              />
-            </div>
-
             <div className="dropdown-wrapper sort-wrapper">
-              <button className="filter-btn" onClick={() => { setSortOpen(!sortOpen); setDiseaseOpen(false); }}>
+              <button className="filter-btn" onClick={() => { setSortOpen(!sortOpen); }}>
                 Sort By <span style={{ fontSize: 10 }}>▲</span>
               </button>
               {sortOpen && (
@@ -194,7 +129,7 @@ export default function News() {
                   {sortOptions.map((s) => (
                     <div key={s} className="dropdown-item"
                       style={{ fontWeight: sortBy === s ? "bold" : "normal" }}
-                      onClick={() => { setSortBy(s); setSortOpen(false); }}>
+                      onClick={() => { setSortBy(s); setSortOpen(false); setCurrentPage(1); }}>
                       {s}
                     </div>
                   ))}
@@ -205,18 +140,18 @@ export default function News() {
 
           {/* News List */}
           <div className="news-list">
-            {paginated.length === 0 ? (
-              <div className="empty">No news found for the selected filters.</div>
+            {loading ? (
+              <div className="empty" role="status">Loading news...</div>
+            ) : error ? (
+              <div className="empty" role="alert">
+                <p>{error}</p>
+                <button className="page-btn" onClick={() => setRetry((value) => value + 1)}>Try again</button>
+              </div>
+            ) : paginated.length === 0 ? (
+              <div className="empty">No agricultural news is available right now.</div>
             ) : (
               paginated.map((article) => (
                 <div key={article.id} className="news-card">
-                  <div className="news-card-image">
-                    <img
-                      src={article.image}
-                      alt={article.title}
-                      onError={(e) => { e.target.style.display = "none"; }}
-                    />
-                  </div>
                   <div className="news-card-body">
                     <div className="card-top">
                       <a
@@ -229,20 +164,13 @@ export default function News() {
                       </a>
                       <div className="card-meta">
                         <span className="meta-tag">Source: <strong>{article.source}</strong></span>
-                        <span className="meta-tag">Date: <strong>{article.date}</strong></span>
+                        <span className="meta-tag">Date: <strong>{article.date ? new Date(article.date).toLocaleDateString() : "Date unavailable"}</strong></span>
                       </div>
                     </div>
 
                     <p className="card-desc">{article.description}</p>
 
-                    <div className="card-links">
-                      <a href="https://www.aphis.usda.gov/h5n1-hpai#detections-hpai" target="_blank" rel="noopener noreferrer" className="card-link">
-                        → USDA APHIS H5N1 Detections
-                      </a>
-                      <a href="https://wahis.woah.org/#/event-management" target="_blank" rel="noopener noreferrer" className="card-link">
-                        → WOAH Event Management
-                      </a>
-                    </div>
+
                   </div>
                 </div>
               ))
@@ -250,17 +178,17 @@ export default function News() {
           </div>
 
           {/* Pagination */}
-          <div className="pagination">
+          {!loading && !error && sortedArticles.length > 0 && <div className="pagination">
             <button className="page-btn" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}>
               Prev.
             </button>
             <span className="page-info">
               Pg. <strong>{currentPage}</strong> OF <strong>{totalPages}</strong>
             </span>
-            <button className="page-btn" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+            <button className="page-btn" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
               Next
             </button>
-          </div>
+          </div>}
         </div>
 
         {/* Footer */}
