@@ -51,6 +51,33 @@ try {
     $pdo = db();
     $userId = (int)$_SESSION['user_id'];
 
+    
+    // Limit users to one self-report per day
+    $dailyStmt = $pdo->prepare("
+    SELECT COUNT(*)
+    FROM outbreaks
+    WHERE User_ID = :user_id
+      AND created_at >= CURDATE()
+      AND created_at < CURDATE() + INTERVAL 1 DAY
+        ");
+
+    $dailyStmt->execute([
+    ':user_id' => $userId
+    ]);
+
+    $dailyReports = (int)$dailyStmt->fetchColumn();
+
+    if ($dailyReports > 0) {
+        http_response_code(429);
+
+        echo json_encode([
+            'ok' => false,
+            'error' => 'You can only submit one self report per day.'
+        ]);
+
+        exit;
+    }
+
     // Users with 10+ rejected self reports can still submit, but the new
     // report is automatically rejected instead of entering the admin queue.
     $countStmt = $pdo->prepare("
